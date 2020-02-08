@@ -731,7 +731,7 @@ Expr *swift::buildPropertyWrapperWrappedValueCall(
       auto *init = CallExpr::create(
          ctx, typeExpr, startLoc, {initializer}, {argName},
          {initializer->getStartLoc()}, endLoc,
-         nullptr, /*implicit=*/true);
+         /*trailingClosures=*/{}, /*implicit=*/true);
       initializer = init;
 
       if (!innermostInit)
@@ -766,7 +766,7 @@ Expr *swift::buildPropertyWrapperWrappedValueCall(
 
     auto *init = CallExpr::create(
         ctx, typeExpr, startLoc, elements, elementNames, elementLocs,
-        endLoc, nullptr, /*implicit=*/true);
+        endLoc, /*trailingClosures=*/{}, /*implicit=*/true);
     initializer = init;
 
     if (!innermostInit)
