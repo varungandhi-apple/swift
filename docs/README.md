@@ -91,6 +91,8 @@ documentation, please create a thread on the Swift forums under the
 
 ### Compiler and Runtime Subsystems
 
+- [CompilerArchitecture.md](/docs/Explanations/CompilerArchitecture.md):
+  Describes the overall compiler architecture and different compilation modes.
 - Driver:
   - [Driver.md](/docs/Driver.md):
     Provides an overview of the driver, compilation model, and the compiler's

@@ -595,6 +595,8 @@ Make sure you check out the following resources:
 * [LLVM Programmer's Manual](https://llvm.org/docs/ProgrammersManual.html):
   A guide describing common programming idioms and data types used by LLVM and
   Swift.
+* [Compiler Architecture](/docs/Explanations/CompilerArchitecture.md):
+  Gives a high-level overview of how the compiler is structured.
 * [docs/README.md](/docs/README.md): Provides a bird's eye view of the available
   documentation.
 * [Lexicon.md](/docs/Lexicon.md): Provides definitions for jargon. If you run
@@ -604,7 +606,6 @@ Make sure you check out the following resources:
   [DebuggingTheCompiler.md](/docs/DebuggingTheCompiler.md): These cover more
   ground on testing and debugging respectively.
 * [Development Tips](/docs/DevelopmentTips.md): Tips for being more productive.
-<!-- Link to Compiler Architecture.md once that is ready -->
 
 If you see mistakes in the documentation (including typos, not just major
 errors) or identify gaps that you could potentially improve the contributing

@@ -29,102 +29,11 @@ In contrast to LLVM IR, SIL is a generally target-independent format
 representation that can be used for code distribution, but it can also express
 target-specific concepts as well as LLVM can.
 
+For a high-level overview of the compiler pipeline, including the generation of
+SIL and optimizations on SIL, see
+`CompilerArchitecture.md <Explanations/CompilerArchitecture.md>`_.
 For more information on developing the implementation of SIL and SIL passes, see
 `SILProgrammersManual.md <SILProgrammersManual.md>`_.
-
-SIL in the Swift Compiler
--------------------------
-
-At a high level, the Swift compiler follows a strict pipeline architecture:
-
-- The *Parse* module constructs an AST from Swift source code.
-- The *Sema* module type-checks the AST and annotates it with type information.
-- The *SILGen* module generates *raw SIL* from an AST.
-- A series of *Guaranteed Optimization Passes* and *Diagnostic Passes* are run
-  over the raw SIL both to perform optimizations and to emit
-  language-specific diagnostics.  These are always run, even at -Onone, and
-  produce *canonical SIL*.
-- General SIL *Optimization Passes* optionally run over the canonical SIL to
-  improve performance of the resulting executable.  These are enabled and
-  controlled by the optimization level and are not run at -Onone.
-- *IRGen* lowers canonical SIL to LLVM IR.
-- The LLVM backend (optionally) applies LLVM optimizations, runs the LLVM code
-  generator and emits binary code.
-
-The stages pertaining to SIL processing in particular are as follows:
-
-SILGen
-~~~~~~
-
-SILGen produces *raw SIL* by walking a type-checked Swift AST.
-The form of SIL emitted by SILGen has the following properties:
-
-- Variables are represented by loading and storing mutable memory locations
-  instead of being in strict SSA form. This is similar to the initial
-  ``alloca``-heavy LLVM IR emitted by frontends such as Clang. However, Swift
-  represents variables as reference-counted "boxes" in the most general case,
-  which can be retained, released, and captured into closures.
-- Dataflow requirements, such as definitive assignment, function returns,
-  switch coverage (TBD), etc. have not yet been enforced.
-- ``transparent`` function optimization has not yet been honored.
-
-These properties are addressed by subsequent guaranteed optimization and
-diagnostic passes which are always run against the raw SIL.
-
-Guaranteed Optimization and Diagnostic Passes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After SILGen, a deterministic sequence of optimization passes is run over the
-raw SIL. We do not want the diagnostics produced by the compiler to change as
-the compiler evolves, so these passes are intended to be simple and
-predictable.
-
-- **Mandatory inlining** inlines calls to "transparent" functions.
-- **Memory promotion** is implemented as two optimization phases, the first
-  of which performs capture analysis to promote ``alloc_box`` instructions to
-  ``alloc_stack``, and the second of which promotes non-address-exposed ``alloc_stack``
-  instructions to SSA registers.
-- **Constant propagation** folds constant expressions and propagates the constant values.
-  If an arithmetic overflow occurs during the constant expression computation, a diagnostic
-  is issued.
-- **Return analysis** verifies that each function returns a value on every
-  code path and doesn't "fall off the end" of its definition, which is an error.
-  It also issues an error when a ``noreturn`` function returns.
-- **Critical edge splitting** splits all critical edges from terminators that
-  don't support arbitrary basic block arguments (all non cond_branch
-  terminators).
-
-If all diagnostic passes succeed, the final result is the
-*canonical SIL* for the program.
-
-TODO:
-
-- Generic specialization
-- Basic ARC optimization for acceptable performance at -Onone.
-
-General Optimization Passes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-SIL captures language-specific type information, making it possible to
-perform high-level optimizations that are difficult to perform on LLVM
-IR.
-
-- **Generic Specialization** analyzes specialized calls to generic
-  functions and generates new specialized version of the
-  functions. Then it rewrites all specialized usages of the generic
-  to a direct call of the appropriate specialized function.
-- **Witness and VTable Devirtualization** for a given type looks up
-  the associated method from a class's vtable or a type witness table
-  and replaces the indirect virtual call with a call to the mapped
-  function.
-- **Performance Inlining**
-- **Reference Counting Optimizations**
-- **Memory Promotion/Optimizations**
-- **High-level domain specific optimizations** The Swift compiler implements
-  high-level optimizations on basic Swift containers such as Array or String.
-  Domain specific optimizations require a defined interface between
-  the standard library and the optimizer. More details can be found here:
-  `HighLevelSILOptimizations <HighLevelSILOptimizations.rst>`_
 
 Syntax
 ------
