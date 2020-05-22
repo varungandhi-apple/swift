@@ -83,6 +83,8 @@ under the [development category][] to discuss your proposed changes.
 
 ### Compiler and Runtime Subsystems
 
+- [CompilerArchitecture.md](/docs/TopicGuides/CompilerArchitecture.md):
+  Describes the overall compiler architecture and different compilation modes.
 - Driver:
   - [Driver.md](/docs/Driver.md):
     Provides an overview of the driver, compilation model,
