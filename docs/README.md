@@ -211,12 +211,7 @@ under the [development category][] to discuss your proposed changes.
 
 ## External Resources
 
-The official [Swift blog](https://swift.org/blog/) contains a lot of useful information,
-such as how library evolution works
-and how the compiler's new diagnostic architecture is structured,
-helping us provide more precise diagnostics.
-
-More external resources are listed in [docs/ExternalResources.md](ExternalResources.md).
+External resources are listed in [docs/ExternalResources.md](ExternalResources.md).
 These cover a variety of topics,
 such as the design of different aspects of the Swift compiler and runtime
 and contributing to the project more effectively.
