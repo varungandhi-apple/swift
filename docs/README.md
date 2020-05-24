@@ -60,6 +60,9 @@ under the [development category][] to discuss your proposed changes.
 
 ## How-To Guides
 
+- [GettingStarted.md](/docs/HowToGuides/GettingStarted.md):
+  Describes how to set up a working Swift development environment
+  for Linux and macOS, and get an edit-build-test-debug loop going.
 - [DebuggingTheCompiler.md](/docs/DebuggingTheCompiler.md):
   Describes a variety of techniques for debugging.
 - Building for Android:
