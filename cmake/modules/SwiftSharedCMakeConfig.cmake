@@ -137,7 +137,7 @@ macro(swift_common_standalone_build_config_llvm product)
   # builds, the clang build directory needs to be added here.
   link_directories("${LLVM_LIBRARY_DIR}")
 
-  set(LIT_ARGS_DEFAULT "-sv")
+  set(LIT_ARGS_DEFAULT "-s -vv")
   if(XCODE)
     set(LIT_ARGS_DEFAULT "${LIT_ARGS_DEFAULT} --no-progress-bar")
   endif()

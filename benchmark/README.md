@@ -326,5 +326,5 @@ swift-source$ ninja -C ${SWIFT_BUILD_DIR} swift-benchmark-macosx-x86_64
 When modifying the testing infrastructure, you should verify that your changes
 pass all the tests:
 ````
-swift-source$ ./llvm/utils/lit/lit.py -sv ${SWIFT_BUILD_DIR}/test-macosx-x86_64/benchmark
+swift-source$ ./llvm/utils/lit/lit.py -s -vv ${SWIFT_BUILD_DIR}/test-macosx-x86_64/benchmark
 ````

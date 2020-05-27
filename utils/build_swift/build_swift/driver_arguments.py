@@ -490,7 +490,7 @@ def create_argument_parser():
                 'optimization')
 
     option('--lit-args', store,
-           default='-sv',
+           default='-s -vv',
            metavar='LITARGS',
            help='lit args to use when testing')
 
