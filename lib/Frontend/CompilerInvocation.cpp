@@ -397,6 +397,9 @@ static bool ParseLangArgs(LangOptions &Opts, ArgList &Args,
   Opts.EnableExperimentalEnumCodableDerivation |=
       Args.hasArg(OPT_enable_experimental_enum_codable_derivation);
 
+  Opts.EnableExperimentalEnumCaseAccessControl |=
+      Args.hasArg(OPT_enable_experimental_enum_case_access_control);
+
   Opts.DisableImplicitConcurrencyModuleImport |=
     Args.hasArg(OPT_disable_implicit_concurrency_module_import);
 

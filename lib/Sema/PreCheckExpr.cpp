@@ -501,6 +501,7 @@ Expr *TypeChecker::resolveDeclRefExpr(UnresolvedDeclRefExpr *UDRE,
         TypeChecker::lookupUnqualified(DC, LookupName, Loc, relookupOptions);
     if (inaccessibleResults) {
       // FIXME: What if the unviable candidates have different levels of access?
+      // [Varun] We diagnose some access control issues here.
       const ValueDecl *first = inaccessibleResults.front().getValueDecl();
       Context.Diags.diagnose(
           Loc, diag::candidate_inaccessible, first->getBaseName(),

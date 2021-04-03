@@ -295,7 +295,7 @@ SIMPLE_DECL_ATTR(_hasStorage, HasStorage,
   ABIStableToAdd | ABIStableToRemove | APIStableToAdd | APIStableToRemove, 45)
 DECL_ATTR(private, AccessControl,
   OnFunc | OnAccessor | OnExtension | OnGenericType | OnVar | OnSubscript |
-  OnConstructor |
+  OnConstructor | OnEnumElement |
   DeclModifier |
   NotSerialized |
   ABIStableToAdd | ABIStableToRemove | APIStableToAdd | APIStableToRemove, 46)

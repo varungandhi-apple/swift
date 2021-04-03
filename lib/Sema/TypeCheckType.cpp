@@ -1171,6 +1171,7 @@ static Type diagnoseUnknownType(TypeResolution resolution,
                                        comp->getLoc(), relookupOptions);
     if (!inaccessibleResults.empty()) {
       // FIXME: What if the unviable candidates have different levels of access?
+      // [Varun] We diagnose some access control issues here.
       auto first = cast<TypeDecl>(inaccessibleResults.front().getValueDecl());
       diags.diagnose(comp->getNameLoc(), diag::candidate_inaccessible,
                      first->getBaseName(), first->getFormalAccess());
@@ -1237,6 +1238,7 @@ static Type diagnoseUnknownType(TypeResolution resolution,
                                   relookupOptions);
   if (inaccessibleMembers) {
     // FIXME: What if the unviable candidates have different levels of access?
+    // [Varun] We diagnose some access control issues here.
     const TypeDecl *first = inaccessibleMembers.front().Member;
     diags.diagnose(comp->getNameLoc(), diag::candidate_inaccessible,
                    first->getBaseName(), first->getFormalAccess());

@@ -2066,17 +2066,21 @@ ERROR(witness_requires_class_implementation,none,
       "and has associated type requirements",
       (RequirementKind, DeclName, Type))
 ERROR(witness_not_accessible_proto,none,
-      "%select{initializer %1|method %1|%select{|setter for }2property %1"
+      "%select{initializer %1|method %1|%select{|setter for }2"
+      "%select{case|property}6 %1"
       "|subscript%select{| setter}2}0 must be declared "
       "%select{%error|fileprivate|internal|public|%error}3 because it matches a "
       "requirement in %select{private|fileprivate|internal|public|%error}4 protocol "
       "%5",
-      (RequirementKind, DeclName, bool, AccessLevel, AccessLevel, Identifier))
+      (RequirementKind, DeclName, bool, AccessLevel, AccessLevel, Identifier,
+       bool))
 ERROR(witness_not_accessible_type,none,
-      "%select{initializer %1|method %1|%select{|setter for }2property %1"
+      "%select{initializer %1|method %1|%select{|setter for }2"
+      "%select{case|property}6 %1"
       "|subscript%select{| setter}2}0 must be as accessible as its enclosing "
       "type because it matches a requirement in protocol %5",
-      (RequirementKind, DeclName, bool, AccessLevel, AccessLevel, Identifier))
+      (RequirementKind, DeclName, bool, AccessLevel, AccessLevel, Identifier,
+       bool))
 ERROR(type_witness_not_accessible_proto,none,
       "%0 %1 must be declared %select{%error|fileprivate|internal|public|%error}2 "
       "because it matches a requirement in "
@@ -2721,6 +2725,9 @@ WARNING(enum_case_access_warn,none,
         (AccessLevel, AccessLevel))
 ERROR(enum_case_usable_from_inline,none,
       "type of enum case in '@usableFromInline' enum "
+      "must be '@usableFromInline' or public", ())
+ERROR(enum_case_usable_from_inline_frozen,none,
+      "type of associated value in '@frozen' enum case "
       "must be '@usableFromInline' or public", ())
 WARNING(enum_case_usable_from_inline_warn,none,
         "type of enum case in '@usableFromInline' enum "

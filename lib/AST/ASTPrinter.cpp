@@ -3612,6 +3612,8 @@ void PrintAST::visitEnumCaseDecl(EnumCaseDecl *decl) {
     // Documentation comments over the case are attached to the enum elements.
     printDocumentationComment(elems[0]);
     printAttributes(elems[0]);
+    if (decl->getASTContext().LangOpts.EnableExperimentalEnumCaseAccessControl)
+      printAccess(elems[0]);
   }
   Printer << tok::kw_case << " ";
 
@@ -3627,6 +3629,8 @@ void PrintAST::visitEnumElementDecl(EnumElementDecl *decl) {
   // In cases where there is no parent EnumCaseDecl (such as imported or
   // deserialized elements), print the element independently.
   printAttributes(decl);
+  if (decl->getASTContext().LangOpts.EnableExperimentalEnumCaseAccessControl)
+    printAccess(decl);
   Printer << tok::kw_case << " ";
   printEnumElement(decl);
 }

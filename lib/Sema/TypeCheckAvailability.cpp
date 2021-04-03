@@ -74,6 +74,12 @@ bool swift::isExported(const ValueDecl *VD) {
     if (property->isLayoutExposedToClients())
       return true;
 
+  // FIXME: [Varun] Do we need something more complicated than this?
+  if (auto *enumElement = dyn_cast<EnumElementDecl>(VD)) {
+    if (enumElement->getParentEnum()->getAttrs().hasAttribute<FrozenAttr>())
+      return true;
+  }
+
   return false;
 }
 

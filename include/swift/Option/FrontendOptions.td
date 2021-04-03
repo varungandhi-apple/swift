@@ -241,6 +241,10 @@ def enable_experimental_enum_codable_derivation :
   Flag<["-"], "enable-experimental-enum-codable-derivation">,
   HelpText<"Enable experimental derivation of Codable for enums">;
 
+def enable_experimental_enum_case_access_control :
+  Flag<["-"], "enable-experimental-enum-case-access-control">,
+  HelpText<"Enable support for access control for enum cases">;
+
 def enable_resilience : Flag<["-"], "enable-resilience">,
      HelpText<"Deprecated, use -enable-library-evolution instead">;
 }

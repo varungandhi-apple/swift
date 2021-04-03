@@ -84,7 +84,7 @@ private class TestClass {
 }
 
 private enum TestEnum {
-  private case Foo, Bar // expected-error {{'private' modifier cannot be applied to this declaration}} {{3-11=}}
+  private case Foo, Bar
 }
 
 private protocol TestProtocol {

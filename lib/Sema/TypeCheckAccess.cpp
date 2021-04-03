@@ -1015,7 +1015,8 @@ public:
       return;
 
     if (auto *VD = dyn_cast<ValueDecl>(D))
-      if (shouldSkipChecking(VD))
+      // Enum associated values need to be checked like PatternBindingDecls
+      if (!isa<EnumElementDecl>(VD) && shouldSkipChecking(VD))
         return;
 
     DeclVisitor<UsableFromInlineChecker>::visit(D);
@@ -1426,13 +1427,24 @@ public:
   void visitEnumElementDecl(EnumElementDecl *EED) {
     if (!EED->hasAssociatedValues())
       return;
+    bool isFrozen = false;
+    ValueDecl *VD = EED;
+    auto *ED = EED->getParentEnum();
+    if (ED->getAttrs().hasAttribute<FrozenAttr>()) {
+      isFrozen = true;
+      VD = ED;
+    }
+    if (!isFrozen && shouldSkipChecking(EED))
+      return;
     for (auto &P : *EED->getParameterList()) {
       checkTypeAccess(
-          P->getInterfaceType(), P->getTypeRepr(), EED, /*mayBeInferred*/ false,
+          P->getInterfaceType(), P->getTypeRepr(), VD, /*mayBeInferred*/ false,
           [&](AccessScope typeAccessScope, const TypeRepr *complainRepr,
               DowngradeToWarning downgradeToWarning) {
             auto diagID = diag::enum_case_usable_from_inline;
-            if (!EED->getASTContext().isSwiftVersionAtLeast(5))
+            if (isFrozen)
+              diagID = diag::enum_case_usable_from_inline_frozen;
+            else if (!EED->getASTContext().isSwiftVersionAtLeast(5))
               diagID = diag::enum_case_usable_from_inline_warn;
             auto diag = EED->diagnose(diagID);
             highlightOffendingType(diag, complainRepr);

@@ -276,6 +276,9 @@ namespace swift {
     /// Enable experimental derivation of `Codable` for enums.
     bool EnableExperimentalEnumCodableDerivation = false;
 
+    /// Enable support for access control for enum cases.
+    bool EnableExperimentalEnumCaseAccessControl = false;
+
     /// Disable the implicit import of the _Concurrency module.
     bool DisableImplicitConcurrencyModuleImport = false;
 

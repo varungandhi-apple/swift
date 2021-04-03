@@ -723,7 +723,6 @@ void AttributeChecker::visitLazyAttr(LazyAttr *attr) {
 
 bool AttributeChecker::visitAbstractAccessControlAttr(
     AbstractAccessControlAttr *attr) {
-  // Access control attr may only be used on value decls and extensions.
   if (!isa<ValueDecl>(D) && !isa<ExtensionDecl>(D)) {
     diagnoseAndRemoveAttr(attr, diag::invalid_decl_modifier, attr);
     return true;
@@ -738,7 +737,9 @@ bool AttributeChecker::visitAbstractAccessControlAttr(
   }
 
   // And not on certain value decls.
-  if (isa<DestructorDecl>(D) || isa<EnumElementDecl>(D)) {
+  if (isa<DestructorDecl>(D) ||
+      (isa<EnumElementDecl>(D) &&
+       !Ctx.LangOpts.EnableExperimentalEnumCaseAccessControl)) {
     diagnoseAndRemoveAttr(attr, diag::invalid_decl_modifier, attr);
     return true;
   }

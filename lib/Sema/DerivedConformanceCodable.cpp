@@ -98,6 +98,7 @@ static EnumDecl *lookupEvaluatedCodingKeysEnum(ASTContext &C,
 
 static EnumElementDecl *lookupEnumCase(ASTContext &C, NominalTypeDecl *target,
                                        Identifier identifier) {
+  // FIXME: [Varun] This seems incorrect since it ignores access control.
   auto elementDecls = target->lookupDirect(DeclName(identifier));
   if (elementDecls.empty())
     return nullptr;

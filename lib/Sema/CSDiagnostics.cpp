@@ -5114,6 +5114,7 @@ bool InaccessibleMemberFailure::diagnoseAsError() {
                      CD->getResultInterfaceType(), accessLevel)
         .highlight(nameLoc.getSourceRange());
   } else {
+    // MARK: [Varun] We emit some inaccessible member diagnostics here.
     emitDiagnosticAt(loc, diag::candidate_inaccessible, Member->getBaseName(),
                      accessLevel)
         .highlight(nameLoc.getSourceRange());

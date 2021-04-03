@@ -3757,6 +3757,8 @@ public:
     verifyAttrSerializable(elem);
 
     auto contextID = S.addDeclContextRef(elem->getDeclContext());
+    uint8_t rawAccessLevel =
+      getRawStableAccessLevel(elem->getFormalAccess());
 
     SmallVector<IdentifierID, 4> nameComponentsAndDependencies;
     auto baseName = S.addDeclBaseNameRef(elem->getBaseName());
@@ -3786,6 +3788,7 @@ public:
     EnumElementLayout::emitRecord(S.Out, S.ScratchRecord, abbrCode,
                                   contextID.getOpaqueValue(),
                                   elem->isImplicit(),
+                                  rawAccessLevel,
                                   elem->hasAssociatedValues(),
                                   (unsigned)rawValueKind,
                                   isRawValueImplicit,

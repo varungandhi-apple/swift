@@ -3841,14 +3841,15 @@ public:
                                           StringRef blobData) {
     DeclContextID contextID;
     bool isImplicit, hasPayload, isRawValueImplicit, isNegative;
+    uint8_t rawAccessLevel;
     unsigned rawValueKindID;
     IdentifierID rawValueData;
     unsigned numArgNames;
     ArrayRef<uint64_t> argNameAndDependencyIDs;
 
     decls_block::EnumElementLayout::readRecord(scratch, contextID,
-                                               isImplicit, hasPayload,
-                                               rawValueKindID,
+                                               isImplicit, rawAccessLevel,
+                                               hasPayload, rawValueKindID,
                                                isRawValueImplicit, isNegative,
                                                rawValueData,
                                                numArgNames,
@@ -3913,8 +3914,10 @@ public:
 
     if (isImplicit)
       elem->setImplicit();
-    elem->setAccess(std::max(cast<EnumDecl>(DC)->getFormalAccess(),
-                             AccessLevel::Internal));
+    if (auto accessLevel = getActualAccessLevel(rawAccessLevel))
+      elem->setAccess(*accessLevel);
+    else
+      MF.fatal();
 
     return elem;
   }

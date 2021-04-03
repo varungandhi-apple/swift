@@ -3963,7 +3963,7 @@ ConformanceChecker::resolveWitnessViaLookup(ValueDecl *requirement) {
                        diagKind, getProtocolRequirementKind(requirement),
                        witness->getName(), isSetter, requiredAccess,
                        protoAccessScope.accessLevelForDiagnostics(),
-                       proto->getName());
+                       proto->getName(), isa<VarDecl>(witness));
         if (auto *decl = dyn_cast<AbstractFunctionDecl>(witness)) {
           auto isMemberwiseInitializer =
               decl->getBodyKind() ==
