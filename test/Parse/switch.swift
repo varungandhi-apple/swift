@@ -727,10 +727,10 @@ func switchTwoWithAtUnknown(_ x: E, _ y: E) {
   }
 }
 
-func switchTwoWithAtUnknown(_ x: E, _ y: E, _ z: E) {
+func switchThreeWithAtUnknown(_ x: E, _ y: E, _ z: E) {
 // should be happy path, no diagnostics
 // but the non-unknown cases are covering the unknown cases, so some extra diagnostics are appearing.
-// Unless I am m
+// unless I am misunderstanding something.
   switch (x, (y, z)) {
   case (.a, (.a, .b)),
        (.a, (.b, .a)),
