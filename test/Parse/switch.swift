@@ -1,4 +1,4 @@
-// RUN: %target-typecheck-verify-swift
+// RUN: %target-typecheck-verify-swift -enable-library-evolution
 
 // TODO: Implement tuple equality in the library.
 // BLOCKED: <rdar://problem/13822406>
@@ -101,8 +101,6 @@ case 0:
 case 1:
   x = 0
 }
-
-
 
 switch x {
   x = 1 // expected-error{{all statements inside a switch must be covered by a 'case' or 'default'}}
@@ -227,12 +225,12 @@ case (_, 2), (let a, _): // expected-error {{'a' must be bound in every pattern}
 // OK
 case (_, 2), (1, _):
   ()
-  
+
 case (_, var a), (_, var a): // expected-warning {{variable 'a' was never used; consider replacing with '_' or removing it}}
   // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
   // expected-warning@-2 {{case is already handled by previous patterns; consider removing it}}
   ()
-  
+
 case (var a, var b), (var b, var a): // expected-warning {{variable 'a' was never used; consider replacing with '_' or removing it}} expected-warning {{variable 'b' was never used; consider replacing with '_' or removing it}}
   // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
   // expected-warning@-2 {{case is already handled by previous patterns; consider removing it}}
@@ -644,4 +642,140 @@ func testIncompleteArrayLiteral() {
   @unknown default: // expected-note {{remove '@unknown' to handle remaining values}}
     ()
   }
+}
+
+// Note that library evolution is enabled above.
+// Other enums in this file are nonpublic so already @frozen.
+public enum E {
+ case a
+ case b
+}
+
+func switchTwoWithAtUnknown(_ x: E, _ y: E) {
+
+// happy path, no diagnostics
+  switch (x, y) {
+  case (.a, .a), (.a, .b), (.b, .a), (.b, .b): ()
+  case (@unknown _, .a): ()
+  case (@unknown _, .b): ()
+  case (.a, @unknown _): ()
+  case (.b, @unknown _): ()
+  case (@unknown _, @unknown _): ()
+  default: ()
+  }
+// note order-dependency--if `case (@unknown _, @unknown _): ()` is first, diagnostics fire
+// I _think_ this is right for the case is already handled--the earlier cases do handle the patterns
+// but the switch is exhaustive in this case, that warning/note should not fire
+  switch (x, y) { // expected-warning {{switch must be exhaustive}}
+  // expected-note@-1 {{add missing case: '(.a, .a)'}}
+  // expected-note@-2 {{add missing case: '(.b, .a)'}}
+  // expected-note@-3 {{add missing case: '(.a, .b)'}}
+  // expected-note@-4 {{add missing case: '(.b, .b)'}}
+  case (@unknown _, @unknown _): ()
+  case (.a, .a), (.a, .b), (.b, .a), (.b, .b): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-2 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-3 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-4 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, .a): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, .b): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (.a, @unknown _): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (.b, @unknown _): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  default: ()
+  }
+
+  switch (x, y) { // expected-warning {{switch must be exhaustive}}
+                  // expected-note@-1 {{add missing case: '(.a, .a)'}}
+                  // expected-note@-2 {{add missing case: '(.b, .a)'}}
+  case (@unknown _, .a): ()
+  case (.a, .a), (.a, .b), (.b, .a), (.b, .b): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-2 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, .b): ()
+  case (.a, @unknown _): ()
+  case (.b, @unknown _): ()
+  case (@unknown _, @unknown _): ()
+  default: ()
+  }
+  // simple missing cases
+  switch (x, y) { // expected-warning {{switch must be exhaustive}}
+                  // expected-note@-1 {{add missing case: '(.a, .a)'}}
+  case (.b, .a): ()
+  case (@unknown _, .a): ()
+  default: ()
+  }
+
+  switch (x, y) { // expected-warning {{switch must be exhaustive}}
+                  // expected-note@-1 {{add missing case: '(.a, .a)'}}
+  case (.b, _): ()
+  case (@unknown _, .a): ()
+  default: ()
+  }
+
+  switch (x, y) { // expected-warning {{switch must be exhaustive}}
+                  // expected-note@-1 {{add missing case: '(.a, _)'}}
+                  // expected-note@-2 {{add missing case: '(.b, _)'}}
+  case (@unknown _, _): ()
+  }
+// cases after `default:`
+  switch (x, y) {
+  default: ()
+  case (.a, .a), (.a, .b), (.b, .a), (.b, .b): ()
+  // expected-error@-1 {{additional 'case' blocks cannot appear after the 'default' block of a 'switch'}}
+  case (@unknown _, .a): ()
+  case (@unknown _, .b): ()
+  case (.a, @unknown _): ()
+  case (.b, @unknown _): ()
+  case (@unknown _, @unknown _): ()
+  default: ()
+  }
+// cases after `case _:`, subtly different from `default`. This is correct I think.
+  switch (x, y) {
+  case _: ()
+  case (.a, .a), (.a, .b), (.b, .a), (.b, .b): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-2 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-3 {{case is already handled by previous patterns; consider removing it}}
+  // expected-warning@-4 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, .a): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, .b): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (.a, @unknown _): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (.b, @unknown _): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, @unknown _): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  default: ()
+  }
+}
+
+func switchThreeWithAtUnknown(_ x: E, _ y: E, _ z: E) {
+// should be happy path, no diagnostics
+// but the non-unknown cases are covering the unknown cases, so some extra diagnostics are appearing.
+// unless I am misunderstanding something.
+  switch (x, (y, z)) {
+  case (.a, (.a, .b)),
+       (.a, (.b, .a)),
+       (.b, (.b, .a)),
+       (.b, (.a, .b)): ()
+  case (.a, _): ()
+  case (.b, _): ()
+  case (_, (.a, .b)): ()
+  case (@unknown _, (.a, .b)): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, (.b, .a)): ()
+  case (.a, (@unknown _, .a)): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (.b, (.a, @unknown _)): ()
+  // expected-warning@-1 {{case is already handled by previous patterns; consider removing it}}
+  case (@unknown _, (@unknown _, @unknown _)): ()
+  default: ()
+  }
+
 }
