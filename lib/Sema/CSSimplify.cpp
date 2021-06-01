@@ -1722,6 +1722,7 @@ static bool matchFunctionRepresentations(FunctionType::ExtInfo einfo1,
     // 3. isSubtypeOf(rep1, rep2) == true and rep1 == rep2:
     //    In this case, the function returns !clangTypeMismatch, as we forbid
     //    conversions between @convention(c) functions with different cTypes.
+    // TODO: [Varun] The clangTypeMismatch should be relaxed here?
     return isSubtypeOf(rep1, rep2) && ((rep1 != rep2) || !clangTypeMismatch);
   }
 
@@ -1743,7 +1744,8 @@ static bool matchFunctionRepresentations(FunctionType::ExtInfo einfo1,
   case ConstraintKind::OperatorArgumentConversion:
     // For now, forbid conversion if representations match but cTypes differ.
     //
-    // let f : @convention(c, cType: "id (*)(void) __attribute__((ns_returns_retained))")
+    // let f : @convention(c, cType: "id (*)(void)
+    // __attribute__((ns_returns_retained))")
     //           () -> AnyObject = ...
     // let _ : @convention(c, cType: "id (*)(void)")
     //           () -> AnyObject = f // error
@@ -1751,6 +1753,7 @@ static bool matchFunctionRepresentations(FunctionType::ExtInfo einfo1,
     //           (OpaquePointer?) -> () = ...
     // let _ : @convention(c, cType: "void (*)(MyCtx *)")
     //           (OpaquePointer?) -> () = g // error
+    // TODO: [Varun] The clangTypeMismatch should be relaxed here?
     if ((rep1 == rep2) && clangTypeMismatch) {
       return false;
     }
@@ -5395,11 +5398,21 @@ ConstraintSystem::matchTypes(Type type1, Type type2, ConstraintKind kind,
     case TypeKind::Function: {
       auto func1 = cast<FunctionType>(desugar1);
       auto func2 = cast<FunctionType>(desugar2);
-
+      // NOTE: [Varun] matchFunctionTypes should continue to return
+      // a failure. When that happens, we will break and try to create
+      // a conversion. (Yes, this seems a bit logically weird; after all,
+      // if the kind was a conversion kind, and we should have a conversion,
+      // then this should return a success. 🤷🏽)
       auto result = matchFunctionTypes(func1, func2, kind, flags, locator);
 
-      if (shouldAttemptFixes() && result.isFailure())
+      if (shouldAttemptFixes() && result.isFailure()) {
+        if (func1->getRepresentation() == func2->getRepresentation() &&
+            func1->getClangTypeInfo() != func2->getClangTypeInfo()) {
+          conversionsOrFixes.push_back(
+              ConversionRestrictionKind::CFunctionTypeChange);
+        }
         break;
+      }
 
       return result;
     }
@@ -11116,6 +11129,29 @@ ConstraintSystem::simplifyRestrictedConstraintImpl(
         {getConstraintLocator(locator), restriction});
     return SolutionKind::Solved;
   }
+  case ConversionRestrictionKind::CFunctionTypeChange:
+    auto &ctx = getASTContext();
+    assert(ctx.LangOpts.UseClangFunctionTypes);
+    switch (matchKind) {
+    case ConstraintKind::Subtype:
+    case ConstraintKind::Conversion:
+    case ConstraintKind::ArgumentConversion:
+    case ConstraintKind::OperatorArgumentConversion: {
+      assert(Options.contains(ConstraintSystemFlags::UseClangFunctionTypes));
+      auto func1 = type1->castTo<FunctionType>();
+      auto func2 = type2->castTo<FunctionType>();
+      Options -= {ConstraintSystemFlags::UseClangFunctionTypes};
+      auto match =
+          matchFunctionTypes(func1, func2, matchKind, subflags, locator);
+      Options |= {ConstraintSystemFlags::UseClangFunctionTypes};
+      if (match.isSuccess()) {
+        return SolutionKind::Solved;
+      }
+      return SolutionKind::Error;
+    }
+    default:
+      return SolutionKind::Error;
+    }
   }
   
   llvm_unreachable("bad conversion restriction");

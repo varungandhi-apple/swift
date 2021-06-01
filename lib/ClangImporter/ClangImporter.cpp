@@ -41,6 +41,7 @@
 #include "swift/Subsystems.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/Mangle.h"
+#include "clang/AST/Type.h"
 #include "clang/Basic/CharInfo.h"
 #include "clang/Basic/IdentifierTable.h"
 #include "clang/Basic/Module.h"
@@ -65,8 +66,8 @@
 #include "llvm/Support/FileCollector.h"
 #include "llvm/Support/Memory.h"
 #include "llvm/Support/Path.h"
-#include "llvm/Support/YAMLTraits.h"
 #include "llvm/Support/YAMLParser.h"
+#include "llvm/Support/YAMLTraits.h"
 #include <algorithm>
 #include <memory>
 
@@ -4302,4 +4303,11 @@ ClangImporter::instantiateCXXClassTemplate(
 
   return dyn_cast_or_null<StructDecl>(
       Impl.importDecl(ctsd, Impl.CurrentVersion));
+}
+
+bool FunctionType::checkCTypeCompatibility(const clang::Type *type,
+                                           ClangModuleLoader *CML) const {
+  // [FIXME: Clang-type-checking] Add some basic checks here for parameter
+  // and return types.
+  return true;
 }

@@ -1862,17 +1862,15 @@ namespace {
                                         TypeResolutionOptions options);
     NeverNullType resolveAttributedType(TypeAttributes &attrs, TypeRepr *repr,
                                         TypeResolutionOptions options);
-    NeverNullType
-    resolveASTFunctionType(FunctionTypeRepr *repr,
-                           TypeResolutionOptions options,
-                           AnyFunctionType::Representation representation =
-                               AnyFunctionType::Representation::Swift,
-                           bool noescape = false,
-                           bool concurrent = false,
-                           const clang::Type *parsedClangFunctionType = nullptr,
-                           DifferentiabilityKind diffKind =
-                               DifferentiabilityKind::NonDifferentiable,
-                           Type globalActor = Type());
+    NeverNullType resolveASTFunctionType(
+        FunctionTypeRepr *repr, TypeResolutionOptions options,
+        AnyFunctionType::Representation representation =
+            AnyFunctionType::Representation::Swift,
+        bool noescape = false, bool concurrent = false,
+        Located<const clang::Type *> parsedClangFunctionType = {},
+        DifferentiabilityKind diffKind =
+            DifferentiabilityKind::NonDifferentiable,
+        Type globalActor = Type());
     SmallVector<AnyFunctionType::Param, 8> resolveASTFunctionTypeParams(
         TupleTypeRepr *inputRepr, TypeResolutionOptions options,
         bool requiresMappingOut, DifferentiabilityKind diffKind);
@@ -2332,7 +2330,7 @@ TypeResolver::resolveAttributedType(TypeAttributes &attrs, TypeRepr *repr,
   };
 
   if (fnRepr && hasFunctionAttr) {
-    const clang::Type *parsedClangFunctionType = nullptr;
+    Located<const clang::Type *> parsedClangFunctionType{};
     if (options & TypeResolutionFlags::SILType) {
       SILFunctionType::Representation rep;
       TypeRepr *witnessMethodProtocol = nullptr;
@@ -2380,8 +2378,10 @@ TypeResolver::resolveAttributedType(TypeAttributes &attrs, TypeRepr *repr,
           rep = SILFunctionType::Representation::Thin;
         } else {
           rep = *parsedRep;
-          parsedClangFunctionType = tryParseClangType(
+          parsedClangFunctionType.Item = tryParseClangType(
               attrs.ConventionArguments.getValue(), shouldStoreClangType(rep));
+          parsedClangFunctionType.Loc =
+              attrs.ConventionArguments->ClangType.Loc;
         }
 
         if (rep == SILFunctionType::Representation::WitnessMethod) {
@@ -2410,7 +2410,7 @@ TypeResolver::resolveAttributedType(TypeAttributes &attrs, TypeRepr *repr,
       auto extInfoBuilder = SILFunctionType::ExtInfoBuilder(
           rep, attrs.has(TAK_pseudogeneric), attrs.has(TAK_noescape),
           attrs.has(TAK_Sendable), attrs.has(TAK_async), diffKind,
-          parsedClangFunctionType);
+          parsedClangFunctionType.Item);
 
       ty =
           resolveSILFunctionType(fnRepr, options, coroutineKind, extInfoBuilder,
@@ -2435,9 +2435,10 @@ TypeResolver::resolveAttributedType(TypeAttributes &attrs, TypeRepr *repr,
           rep = FunctionType::Representation::Swift;
         } else {
           rep = *parsedRep;
-
-          parsedClangFunctionType = tryParseClangType(
+          parsedClangFunctionType.Item = tryParseClangType(
               attrs.ConventionArguments.getValue(), shouldStoreClangType(rep));
+          parsedClangFunctionType.Loc =
+              attrs.ConventionArguments->ClangType.Loc;
         }
       }
 
@@ -2866,7 +2867,7 @@ TypeResolver::resolveOpaqueReturnType(TypeRepr *repr, StringRef mangledName,
 NeverNullType TypeResolver::resolveASTFunctionType(
     FunctionTypeRepr *repr, TypeResolutionOptions parentOptions,
     AnyFunctionType::Representation representation, bool noescape,
-    bool concurrent, const clang::Type *parsedClangFunctionType,
+    bool concurrent, Located<const clang::Type *> parsedClangFunctionType,
     DifferentiabilityKind diffKind, Type globalActor) {
 
   Optional<llvm::SaveAndRestore<GenericParamList *>> saveGenericParams;
@@ -2922,7 +2923,20 @@ NeverNullType TypeResolver::resolveASTFunctionType(
       FunctionTypeRepresentation::Swift, noescape, repr->isThrowing(), diffKind,
       /*clangFunctionType*/ nullptr, Type());
 
-  const clang::Type *clangFnType = parsedClangFunctionType;
+  auto clangType = parsedClangFunctionType.Item;
+  if (clangType) {
+    auto *CI =
+        static_cast<ClangImporter *>(getASTContext().getClangModuleLoader());
+    auto swiftTy = FunctionType::get(params, outputTy);
+    bool isCompatible = swiftTy->checkCTypeCompatibility(clangType, CI);
+    if (!isCompatible) {
+      diagnose(parsedClangFunctionType.Loc, diag::incompatible_c_function_type,
+               clang::QualType(clangType, 0).getAsString(), Type(swiftTy));
+      return Type();
+    }
+  }
+
+  const clang::Type *clangFnType = clangType;
   if (shouldStoreClangType(representation) && !clangFnType)
     clangFnType =
         getASTContext().getClangFunctionType(params, outputTy, representation);

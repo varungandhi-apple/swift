@@ -6879,6 +6879,8 @@ Expr *ExprRewriter::coerceToType(Expr *expr, Type toType,
       finishApply(implicitInit, toType, callLocator, callLocator);
       return implicitInit;
     }
+    case ConversionRestrictionKind::CFunctionTypeChange:
+      return cs.cacheType(new (ctx) FunctionConversionExpr(expr, toType));
     }
   }
 

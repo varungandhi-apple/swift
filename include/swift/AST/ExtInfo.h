@@ -29,8 +29,9 @@
 #include <utility>
 
 namespace clang {
-class Type;
 class ASTContext;
+class Sema;
+class Type;
 } // namespace clang
 
 namespace swift {

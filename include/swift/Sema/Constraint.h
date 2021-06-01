@@ -272,6 +272,11 @@ enum class ConversionRestrictionKind {
   /// Implicit conversion from a value of CGFloat type to a value of Double type
   /// via an implicit Double initializer call passing a CGFloat value.
   CGFloatToDouble,
+  /// Implicit conversion from @convention(c, cType: c1) (A) -> B to
+  /// @convention(c, cType: c2) (A) -> B, where c1 != c2 but c1 is convertible
+  /// to c2.
+  /// (Similarly for @convention(block).)
+  CFunctionTypeChange,
 };
 
 /// Specifies whether a given conversion requires the creation of a temporary

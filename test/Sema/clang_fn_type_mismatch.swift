@@ -9,14 +9,12 @@ let f1 : (@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)? = getFuncti
 // with differing cTypes doesn't work.
 
 let _ : @convention(c) (Int) -> Int = f1!
-// expected-error@-1{{cannot convert value of type '@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int' to specified type '@convention(c) (Int) -> Int'}}
 
 let _ : (@convention(c) (Int) -> Int)? = f1
-// expected-error@-1{{cannot convert value of type '(@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?' to specified type '(@convention(c) (Int) -> Int)?'}}
 
+// [FIXME: Clang-type-checking] Diagnose error since Clang type
+// "void *(*)(void *)" is incompatible with (Int) -> Int.
 let _ : (@convention(c, cType: "void *(*)(void *)") (Int) -> Int)? = f1
-// expected-error@-1{{cannot convert value of type '(@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?' to specified type '(@convention(c, cType: "void *(*)(void *)") (Int) -> Int)?'}}
-
 
 // Converting from @convention(c) -> @convention(swift) works
 
@@ -40,10 +38,8 @@ let _ : @convention(c, cType: "size_t (*)(size_t)") (Int) -> Int = fs
 let f2 : (@convention(c) ((@convention(c, cType: "size_t (*)(size_t)") (Swift.Int) -> Swift.Int)?) -> (@convention(c, cType: "size_t (*)(size_t)") (Swift.Int) -> Swift.Int)?)? = getHigherOrderFunctionPointer()!
 
 let _ : (@convention(c) ((@convention(c) (Swift.Int) -> Swift.Int)?) -> (@convention(c, cType: "size_t (*)(size_t)") (Swift.Int) -> Swift.Int)?)? = f2!
-// expected-error@-1{{cannot convert value of type '@convention(c) ((@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?) -> (@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?' to specified type '(@convention(c) ((@convention(c) (Int) -> Int)?) -> (@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?)?'}}
 
 let _ : (@convention(c) ((@convention(c) (Swift.Int) -> Swift.Int)?) -> (@convention(c) (Swift.Int) -> Swift.Int)?)? = f2!
-// expected-error@-1{{cannot convert value of type '@convention(c) ((@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?) -> (@convention(c, cType: "size_t (*)(size_t)") (Int) -> Int)?' to specified type '(@convention(c) ((@convention(c) (Int) -> Int)?) -> (@convention(c) (Int) -> Int)?)?'}}
 
 let f3 = getFunctionPointer3
 

@@ -5571,6 +5571,9 @@ void IRGenSILFunction::visitEndUnpairedAccessInst(EndUnpairedAccessInst *i) {
 
 void IRGenSILFunction::visitConvertFunctionInst(swift::ConvertFunctionInst *i) {
   // This instruction is specified to be a no-op.
+  // [FIXME: Clang-type-IRGen] We may need to adjust parameter conventions
+  // or return type conventions for functions using __attribute__((ns_consumed))
+  // and similar.
   Explosion temp = getLoweredExplosion(i->getOperand());
   setLoweredExplosion(i, temp);
 }

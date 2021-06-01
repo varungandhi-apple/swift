@@ -18,6 +18,7 @@
 #include "swift/AST/ExtInfo.h"
 
 #include "clang/AST/Type.h"
+#include "clang/Sema/Sema.h"
 
 #include "llvm/ADT/Optional.h"
 

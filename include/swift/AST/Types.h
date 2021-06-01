@@ -3353,6 +3353,9 @@ public:
     return *getTrailingObjects<Type>();
   }
 
+  bool checkCTypeCompatibility(const clang::Type *type,
+                               ClangModuleLoader *CI) const;
+
   void Profile(llvm::FoldingSetNodeID &ID) {
     Optional<ExtInfo> info = None;
     if (hasExtInfo())
